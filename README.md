@@ -1,5 +1,7 @@
 # AI Product Copilot
 
+**English** | [简体中文](README_CN.md)
+
 > **AI proposes. AI critiques. Humans decide.**
 
 A local-first AI product workflow that turns ambiguous product ideas into
