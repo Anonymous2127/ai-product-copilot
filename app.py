@@ -20,37 +20,34 @@ st.set_page_config(
 
 
 # =========================================================
-# Custom CSS
+# CSS
 # =========================================================
 
 st.markdown(
     """
     <style>
 
-    /* Main page width */
     .block-container {
-        max-width: 1400px;
+        max-width: 1280px;
         padding-top: 2rem;
-        padding-bottom: 4rem;
+        padding-bottom: 5rem;
     }
 
-    /* Reduce default Streamlit top whitespace */
     header[data-testid="stHeader"] {
         background: transparent;
     }
 
-    /* Hero */
     .hero-label {
-        font-size: 0.78rem;
+        font-size: 0.75rem;
         font-weight: 700;
         letter-spacing: 0.12em;
-        opacity: 0.65;
+        opacity: 0.55;
         margin-bottom: 0.6rem;
     }
 
     .hero-title {
         font-size: 3rem;
-        font-weight: 750;
+        font-weight: 760;
         line-height: 1.05;
         letter-spacing: -0.04em;
         margin-bottom: 0.7rem;
@@ -58,98 +55,52 @@ st.markdown(
 
     .hero-subtitle {
         font-size: 1.08rem;
-        opacity: 0.72;
-        max-width: 720px;
-        line-height: 1.6;
-        margin-bottom: 1.2rem;
-    }
-
-    /* Status pills */
-    .pill-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.8rem;
+        line-height: 1.65;
+        opacity: 0.7;
+        max-width: 760px;
         margin-bottom: 1rem;
     }
 
     .pill {
         display: inline-block;
-        border: 1px solid rgba(128, 128, 128, 0.35);
+        border: 1px solid rgba(128,128,128,0.3);
         border-radius: 999px;
-        padding: 0.32rem 0.7rem;
-        font-size: 0.78rem;
-        opacity: 0.82;
+        padding: 0.3rem 0.65rem;
+        margin-right: 0.35rem;
+        margin-bottom: 0.35rem;
+        font-size: 0.76rem;
+        opacity: 0.8;
     }
 
-    /* Workflow */
-    .workflow {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.7rem;
-        margin-top: 0.7rem;
-        margin-bottom: 1.8rem;
-    }
-
-    .workflow-step {
-        border: 1px solid rgba(128, 128, 128, 0.25);
-        border-radius: 12px;
-        padding: 0.85rem 1rem;
-    }
-
-    .workflow-number {
-        font-size: 0.72rem;
-        opacity: 0.55;
-        margin-bottom: 0.2rem;
-    }
-
-    .workflow-title {
-        font-weight: 650;
-        font-size: 0.95rem;
-    }
-
-    .workflow-description {
-        font-size: 0.78rem;
-        opacity: 0.62;
-        margin-top: 0.2rem;
-    }
-
-    /* Section label */
     .section-label {
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.1em;
-        opacity: 0.55;
+        opacity: 0.5;
         margin-bottom: 0.25rem;
     }
 
-    /* Architecture note */
-    .architecture-note {
-        border-left: 3px solid rgba(128, 128, 128, 0.45);
+    .small-note {
+        border-left: 3px solid rgba(128,128,128,0.35);
         padding-left: 1rem;
-        margin-top: 1rem;
         font-size: 0.86rem;
         opacity: 0.72;
-        line-height: 1.55;
+        line-height: 1.6;
+        margin-top: 1rem;
     }
 
-    /* Footer */
-    .footer-note {
+    .decision-summary {
+        border: 1px solid rgba(128,128,128,0.25);
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .footer {
         text-align: center;
+        opacity: 0.45;
         font-size: 0.76rem;
-        opacity: 0.5;
-        margin-top: 3rem;
-    }
-
-    /* Mobile */
-    @media (max-width: 800px) {
-        .workflow {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .hero-title {
-            font-size: 2.3rem;
-        }
+        margin-top: 4rem;
     }
 
     </style>
@@ -159,13 +110,29 @@ st.markdown(
 
 
 # =========================================================
-# Helper Functions
+# Helpers
 # =========================================================
 
+def clear_workflow():
+    keys = [
+        "analysis",
+        "review",
+        "prd",
+        "requirement",
+        "human_instructions",
+        "remove_ranking",
+        "require_evidence",
+        "human_shortlist",
+        "privacy_risk",
+        "no_ats",
+    ]
+
+    for key in keys:
+        if key in st.session_state:
+            del st.session_state[key]
+
+
 def prd_to_markdown(prd):
-    """
-    Convert the structured PRD into Markdown.
-    """
 
     lines = [
         f"# {prd.title}",
@@ -185,101 +152,89 @@ def prd_to_markdown(prd):
     for item in prd.target_users:
         lines.append(f"- {item}")
 
-    lines.extend(
-        [
-            "",
-            "## Goals",
-            "",
-        ]
-    )
+    sections = [
+        ("Goals", prd.goals),
+        ("Non-Goals", prd.non_goals),
+        ("User Stories", prd.user_stories),
+        ("MVP Scope", prd.mvp_scope),
+        (
+            "Acceptance Criteria",
+            prd.acceptance_criteria,
+        ),
+        ("Risks", prd.risks),
+        ("Open Questions", prd.open_questions),
+    ]
 
-    for item in prd.goals:
-        lines.append(f"- {item}")
+    for title, items in sections:
 
-    lines.extend(
-        [
-            "",
-            "## Non-Goals",
-            "",
-        ]
-    )
+        lines.extend(
+            [
+                "",
+                f"## {title}",
+                "",
+            ]
+        )
 
-    for item in prd.non_goals:
-        lines.append(f"- {item}")
-
-    lines.extend(
-        [
-            "",
-            "## User Stories",
-            "",
-        ]
-    )
-
-    for item in prd.user_stories:
-        lines.append(f"- {item}")
-
-    lines.extend(
-        [
-            "",
-            "## MVP Scope",
-            "",
-        ]
-    )
-
-    for item in prd.mvp_scope:
-        lines.append(f"- {item}")
-
-    lines.extend(
-        [
-            "",
-            "## Acceptance Criteria",
-            "",
-        ]
-    )
-
-    for item in prd.acceptance_criteria:
-        lines.append(f"- {item}")
-
-    lines.extend(
-        [
-            "",
-            "## Risks",
-            "",
-        ]
-    )
-
-    for item in prd.risks:
-        lines.append(f"- {item}")
-
-    lines.extend(
-        [
-            "",
-            "## Open Questions",
-            "",
-        ]
-    )
-
-    for item in prd.open_questions:
-        lines.append(f"- {item}")
+        for item in items:
+            lines.append(f"- {item}")
 
     lines.append("")
 
     return "\n".join(lines)
 
 
-def clear_previous_results():
-    """
-    Clear previous AI outputs when a new idea is analyzed.
-    """
+def build_human_instructions(
+    remove_ranking,
+    require_evidence,
+    human_shortlist,
+    privacy_risk,
+    no_ats,
+    additional_notes,
+):
 
-    for key in [
-        "analysis",
-        "review",
-        "prd",
-        "human_instructions",
-    ]:
-        if key in st.session_state:
-            del st.session_state[key]
+    instructions = []
+
+    if remove_ranking:
+        instructions.append(
+            "Remove automated candidate ranking and "
+            "relevance scores from the MVP."
+        )
+
+    if require_evidence:
+        instructions.append(
+            "Every AI-generated match should show "
+            "supporting evidence from the resume."
+        )
+
+    if human_shortlist:
+        instructions.append(
+            "Recruiters must make the final shortlist "
+            "decision. AI should only assist."
+        )
+
+    if privacy_risk:
+        instructions.append(
+            "Candidate privacy and sensitive personal data "
+            "must be treated as a key product risk."
+        )
+
+    if no_ats:
+        instructions.append(
+            "Do not assume ATS integration in the MVP."
+        )
+
+    if additional_notes.strip():
+        instructions.append(
+            additional_notes.strip()
+        )
+
+    if not instructions:
+        return (
+            "No additional human product decisions "
+            "were provided."
+        )
+
+    return "\n\n".join(instructions)
 
 
 # =========================================================
@@ -297,444 +252,364 @@ st.markdown(
     </div>
 
     <div class="hero-subtitle">
-        Turn ambiguous product ideas into structured,
-        reviewed, and human-approved product requirements.
-        Built to explore how AI can assist product decisions
-        without replacing product judgment.
+        Turn ambiguous ideas into structured product decisions.
+        AI proposes and critiques. Product managers decide.
     </div>
 
-    <div class="pill-container">
-        <span class="pill">Qwen3:8B</span>
-        <span class="pill">Ollama</span>
-        <span class="pill">LangChain</span>
-        <span class="pill">Structured Output</span>
-        <span class="pill">Human-in-the-loop</span>
-        <span class="pill">Local-first</span>
-    </div>
+    <span class="pill">Qwen3:8B</span>
+    <span class="pill">Ollama</span>
+    <span class="pill">LangChain</span>
+    <span class="pill">Pydantic</span>
+    <span class="pill">Human-in-the-loop</span>
     """,
     unsafe_allow_html=True,
 )
 
+st.write("")
+
 
 # =========================================================
-# Workflow Overview
+# Progress Navigation
 # =========================================================
 
-# =========================================================
-# Workflow Overview
-# =========================================================
+nav1, nav2, nav3, nav4, nav5 = st.columns(5)
 
-step_1, step_2, step_3, step_4 = st.columns(4)
+with nav1:
+    if "analysis" in st.session_state:
+        st.success("✓ 01 Define")
+    else:
+        st.info("● 01 Define")
 
-with step_1:
-    st.caption("01 / DEFINE")
-    st.markdown("#### Define")
-    st.write(
-        "Describe an ambiguous product idea."
-    )
+with nav2:
+    if "analysis" in st.session_state:
+        st.success("✓ 02 Analyze")
+    else:
+        st.caption("○ 02 Analyze")
 
-with step_2:
-    st.caption("02 / ANALYZE")
-    st.markdown("#### Analyze")
-    st.write(
-        "Generate structured requirements."
-    )
+with nav3:
+    if "review" in st.session_state:
+        st.success("✓ 03 Review")
+    else:
+        st.caption("○ 03 Review")
 
-with step_3:
-    st.caption("03 / REVIEW")
-    st.markdown("#### Review")
-    st.write(
-        "Detect assumptions and quality risks."
-    )
+with nav4:
+    if "prd" in st.session_state:
+        st.success("✓ 04 Decide")
+    elif "review" in st.session_state:
+        st.info("● 04 Decide")
+    else:
+        st.caption("○ 04 Decide")
 
-with step_4:
-    st.caption("04 / DECIDE")
-    st.markdown("#### Decide")
-    st.write(
-        "Human input shapes the final PRD."
-    )
+with nav5:
+    if "prd" in st.session_state:
+        st.success("✓ 05 PRD")
+    else:
+        st.caption("○ 05 PRD")
 
 st.divider()
 
-# =========================================================
-# Main Workspace
-# =========================================================
-
-input_col, analysis_col = st.columns(
-    [0.9, 1.35],
-    gap="large",
-)
-
 
 # =========================================================
-# Left Column — Define
+# STEP 1 — DEFINE
 # =========================================================
 
-with input_col:
+if "analysis" not in st.session_state:
 
     st.markdown(
         '<div class="section-label">01 / DEFINE</div>',
         unsafe_allow_html=True,
     )
 
-    st.subheader(
+    st.header(
         "What are you trying to build?"
     )
 
-    requirement = st.text_area(
-        "Product idea",
-        placeholder=(
-            "Example:\n\n"
-            "Build an AI resume screening feature that "
-            "helps recruiters quickly identify candidates "
-            "who match a job description."
-        ),
-        height=240,
-        label_visibility="collapsed",
+    st.write(
+        "Start with an early product idea. "
+        "It does not need to be a complete requirement."
     )
 
-    analyze_button = st.button(
-        "Analyze Product Idea →",
-        type="primary",
-        use_container_width=True,
+    input_col, example_col = st.columns(
+        [1.5, 0.8],
+        gap="large",
     )
 
-    st.markdown(
-        """
-        <div class="architecture-note">
-            <b>Local AI</b><br>
-            Qwen3:8B runs locally through Ollama.
-            Product analysis is returned as validated
-            structured output rather than free-form chat.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with input_col:
 
-
-# =========================================================
-# Run Analysis
-# =========================================================
-
-if analyze_button:
-
-    if not requirement.strip():
-
-        st.warning(
-            "Enter a product idea before running the analysis."
+        requirement = st.text_area(
+            "Product idea",
+            placeholder=(
+                "Build an AI resume screening feature "
+                "that helps recruiters identify candidates "
+                "who match a job description."
+            ),
+            height=190,
+            label_visibility="collapsed",
         )
 
-    else:
+        analyze_button = st.button(
+            "Analyze Product Idea →",
+            type="primary",
+            use_container_width=True,
+        )
 
-        st.session_state[
-            "requirement"
-        ] = requirement
+    with example_col:
 
-        clear_previous_results()
+        st.markdown(
+            "#### Example"
+        )
 
-        with st.spinner(
-            "Generating structured product analysis..."
-        ):
+        st.caption(
+            "Try this product idea:"
+        )
 
-            try:
+        st.code(
+            "Build an AI resume screening feature "
+            "that helps recruiters identify candidates "
+            "who match a job description.",
+            language=None,
+        )
 
-                analysis = analyze_requirement(
-                    requirement
-                )
+        st.markdown(
+            """
+            <div class="small-note">
+                <b>Local inference</b><br>
+                Product inputs are processed by
+                Qwen3:8B through Ollama.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-                st.session_state[
-                    "analysis"
-                ] = analysis
+    if analyze_button:
 
-            except Exception as e:
+        if not requirement.strip():
 
-                st.error(
-                    f"Product analysis failed: {e}"
-                )
+            st.warning(
+                "Enter a product idea first."
+            )
 
-        if "analysis" in st.session_state:
+        else:
+
+            clear_workflow()
+
+            st.session_state[
+                "requirement"
+            ] = requirement
 
             with st.spinner(
-                "Running independent quality review..."
+                "Analyzing product idea..."
             ):
 
                 try:
 
+                    analysis = analyze_requirement(
+                        requirement
+                    )
+
+                    st.session_state[
+                        "analysis"
+                    ] = analysis
+
                     review = review_analysis(
                         requirement,
-                        st.session_state[
-                            "analysis"
-                        ],
+                        analysis,
                     )
 
                     st.session_state[
                         "review"
                     ] = review
 
+                    st.rerun()
+
                 except Exception as e:
 
                     st.error(
-                        f"Quality review failed: {e}"
+                        f"Analysis failed: {e}"
                     )
 
 
 # =========================================================
-# Right Column — Analyze
+# STEP 2 + 3 — ANALYZE / REVIEW
 # =========================================================
 
-with analysis_col:
+elif (
+    "analysis" in st.session_state
+    and "prd" not in st.session_state
+):
 
-    st.markdown(
-        '<div class="section-label">02 / ANALYZE</div>',
-        unsafe_allow_html=True,
+    analysis = st.session_state[
+        "analysis"
+    ]
+
+    review = st.session_state.get(
+        "review"
     )
 
-    st.subheader(
-        "Structured Product Analysis"
+    analysis_col, review_col = st.columns(
+        [1.15, 0.85],
+        gap="large",
     )
 
-    if "analysis" not in st.session_state:
+    # -----------------------------------------------------
+    # Analysis
+    # -----------------------------------------------------
 
-        st.info(
-            "Your structured product analysis will appear "
-            "here after you submit a product idea."
-        )
-
-    else:
-
-        result = st.session_state[
-            "analysis"
-        ]
+    with analysis_col:
 
         st.markdown(
-            "#### Problem"
+            '<div class="section-label">'
+            '02 / ANALYZE'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.header(
+            "AI Product Analysis"
+        )
+
+        st.markdown(
+            "### Problem"
         )
 
         st.write(
-            result.problem
+            analysis.problem
         )
 
         st.markdown(
-            "#### Target Users"
+            "### Target Users"
         )
 
-        for user in result.target_users:
-
-            st.markdown(
-                f"- {user}"
-            )
+        for item in analysis.target_users:
+            st.markdown(f"- {item}")
 
         st.markdown(
-            "#### User Stories"
+            "### MVP Features"
         )
 
-        for story in result.user_stories:
-
-            st.markdown(
-                f"- **As a {story.role}**, "
-                f"I want to {story.goal}, "
-                f"so that {story.benefit}."
-            )
-
-        st.markdown(
-            "#### MVP Features"
-        )
-
-        for feature in result.mvp_features:
-
-            st.markdown(
-                f"- {feature}"
-            )
-
-        st.markdown(
-            "#### Acceptance Criteria"
-        )
-
-        for criterion in (
-            result.acceptance_criteria
-        ):
-
-            st.markdown(
-                f"- {criterion}"
-            )
+        for item in analysis.mvp_features:
+            st.markdown(f"- {item}")
 
         with st.expander(
-            "Risks, assumptions & open questions",
-            expanded=False,
+            "View user stories"
+        ):
+
+            for story in analysis.user_stories:
+
+                st.markdown(
+                    f"- **As a {story.role}**, "
+                    f"I want to {story.goal}, "
+                    f"so that {story.benefit}."
+                )
+
+        with st.expander(
+            "View acceptance criteria"
+        ):
+
+            for item in (
+                analysis.acceptance_criteria
+            ):
+                st.markdown(f"- {item}")
+
+        with st.expander(
+            "View risks & assumptions"
         ):
 
             st.markdown(
-                "##### Risks"
+                "#### Risks"
             )
 
-            for risk in result.risks:
-
-                st.markdown(
-                    f"- {risk}"
-                )
+            for item in analysis.risks:
+                st.markdown(f"- {item}")
 
             st.markdown(
-                "##### Assumptions"
+                "#### Assumptions"
             )
 
-            for assumption in result.assumptions:
-
-                st.markdown(
-                    f"- {assumption}"
-                )
+            for item in analysis.assumptions:
+                st.markdown(f"- {item}")
 
             st.markdown(
-                "##### Open Questions"
+                "#### Open Questions"
             )
 
-            for question in result.open_questions:
+            for item in analysis.open_questions:
+                st.markdown(f"- {item}")
 
-                st.markdown(
-                    f"- {question}"
-                )
+    # -----------------------------------------------------
+    # Quality Review
+    # -----------------------------------------------------
 
+    with review_col:
 
-# =========================================================
-# Quality Review
-# =========================================================
+        st.markdown(
+            '<div class="section-label">'
+            '03 / REVIEW'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-if "review" in st.session_state:
-
-    st.divider()
-
-    st.markdown(
-        '<div class="section-label">03 / REVIEW</div>',
-        unsafe_allow_html=True,
-    )
-
-    review_title_col, review_status_col = st.columns(
-        [3, 1]
-    )
-
-    with review_title_col:
-
-        st.subheader(
+        st.header(
             "AI Quality Review"
         )
 
         st.caption(
-            "A second model pass critiques the generated "
-            "analysis. Findings are advisory, not ground truth."
+            "A second model pass challenges the "
+            "first AI response."
         )
 
-    review = st.session_state[
-        "review"
-    ]
+        if review is None:
 
-    with review_status_col:
+            st.warning(
+                "Quality review unavailable."
+            )
 
-        if review.passed:
+        elif review.passed:
 
             st.success(
-                "Review passed"
+                "No major issues detected."
             )
 
         else:
 
             st.warning(
-                f"{len(review.issues)} issues detected"
+                f"{len(review.issues)} "
+                "decisions worth reviewing"
             )
 
-    if not review.passed:
-
-        for index, issue in enumerate(
-            review.issues,
-            start=1,
-        ):
-
-            with st.expander(
-                f"{index}. {issue.category}",
-                expanded=False,
+            for index, issue in enumerate(
+                review.issues,
+                start=1,
             ):
 
-                st.markdown(
-                    "**Issue**"
-                )
+                with st.expander(
+                    f"{index}. {issue.category}",
+                    expanded=(index == 1),
+                ):
 
-                st.write(
-                    issue.issue
-                )
+                    st.markdown(
+                        "**Why this matters**"
+                    )
 
-                st.markdown(
-                    "**Recommendation**"
-                )
+                    st.write(
+                        issue.issue
+                    )
 
-                st.write(
-                    issue.recommendation
-                )
+                    st.markdown(
+                        "**AI recommendation**"
+                    )
 
-
-# =========================================================
-# Human Review
-# =========================================================
-
-if (
-    "analysis" in st.session_state
-    and "review" in st.session_state
-):
-
-    st.divider()
-
-    st.markdown(
-        '<div class="section-label">04 / DECIDE</div>',
-        unsafe_allow_html=True,
-    )
-
-    decision_col, context_col = st.columns(
-        [1.4, 0.8],
-        gap="large",
-    )
-
-    with decision_col:
-
-        st.subheader(
-            "Human Product Decision"
-        )
-
-        st.write(
-            "Review the AI output, then add the product "
-            "decisions that should shape the final PRD."
-        )
-
-        human_instructions = st.text_area(
-            "Product Manager Instructions",
-            placeholder=(
-                "Example:\n\n"
-                "Remove automated candidate ranking from MVP.\n\n"
-                "Recruiters must make the final shortlist "
-                "decision.\n\n"
-                "Show evidence for each AI recommendation.\n\n"
-                "Treat candidate privacy as a key risk."
-            ),
-            height=220,
-            key="human_instructions",
-        )
-
-        generate_prd_button = st.button(
-            "Generate Human-Reviewed PRD →",
-            type="primary",
-            use_container_width=True,
-        )
-
-    with context_col:
+                    st.write(
+                        issue.recommendation
+                    )
 
         st.markdown(
             """
-            <div class="architecture-note">
-                <b>Why human review?</b><br><br>
-
-                The quality reviewer is another LLM,
-                not an authority.
-
-                Human instructions therefore take priority
-                when the final PRD is generated.
-                This keeps consequential product decisions
-                under human control.
+            <div class="small-note">
+                <b>The reviewer is not ground truth.</b><br>
+                Its findings are advisory.
+                The product manager makes the
+                final product decision.
             </div>
             """,
             unsafe_allow_html=True,
@@ -742,13 +617,120 @@ if (
 
 
     # =====================================================
-    # Generate Final PRD
+    # Decision Workspace
     # =====================================================
 
-    if generate_prd_button:
+    st.divider()
+
+    st.markdown(
+        '<div class="section-label">'
+        '04 / DECIDE'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.header(
+        "Product Decision Workspace"
+    )
+
+    st.write(
+        "Turn AI suggestions into explicit product decisions "
+        "before generating the PRD."
+    )
+
+    decision_col, explanation_col = st.columns(
+        [1.25, 0.75],
+        gap="large",
+    )
+
+    with decision_col:
+
+        remove_ranking = st.checkbox(
+            "Remove automated candidate ranking "
+            "and relevance scores",
+            value=True,
+            key="remove_ranking",
+        )
+
+        require_evidence = st.checkbox(
+            "Require supporting evidence for "
+            "AI-generated matches",
+            value=True,
+            key="require_evidence",
+        )
+
+        human_shortlist = st.checkbox(
+            "Keep final shortlist decisions "
+            "with recruiters",
+            value=True,
+            key="human_shortlist",
+        )
+
+        privacy_risk = st.checkbox(
+            "Treat candidate privacy as a "
+            "key product risk",
+            value=True,
+            key="privacy_risk",
+        )
+
+        no_ats = st.checkbox(
+            "Keep ATS integration outside "
+            "the MVP",
+            value=True,
+            key="no_ats",
+        )
+
+        additional_notes = st.text_area(
+            "Additional PM notes",
+            placeholder=(
+                "Add any product decision that "
+                "is not covered above..."
+            ),
+            height=120,
+            key="human_instructions",
+        )
+
+    with explanation_col:
+
+        st.markdown(
+            "#### Why this step exists"
+        )
+
+        st.write(
+            "AI analysis can surface useful options, "
+            "but product scope and consequential "
+            "decisions should not be silently determined "
+            "by model output."
+        )
+
+        st.info(
+            "Human decisions take priority over "
+            "AI reviewer recommendations."
+        )
+
+    st.write("")
+
+    generate_button = st.button(
+        "Generate Human-Reviewed PRD →",
+        type="primary",
+        use_container_width=True,
+    )
+
+    if generate_button:
+
+        human_instructions = (
+            build_human_instructions(
+                remove_ranking,
+                require_evidence,
+                human_shortlist,
+                privacy_risk,
+                no_ats,
+                additional_notes,
+            )
+        )
 
         with st.spinner(
-            "Generating human-reviewed PRD..."
+            "Applying product decisions..."
         ):
 
             try:
@@ -757,12 +739,8 @@ if (
                     st.session_state[
                         "requirement"
                     ],
-                    st.session_state[
-                        "analysis"
-                    ],
-                    st.session_state[
-                        "review"
-                    ],
+                    analysis,
+                    review,
                     human_instructions,
                 )
 
@@ -770,50 +748,139 @@ if (
                     "prd"
                 ] = prd
 
+                st.session_state[
+                    "final_human_instructions"
+                ] = human_instructions
+
+                st.rerun()
+
             except Exception as e:
 
                 st.error(
-                    "PRD generation failed: "
-                    f"{e}"
+                    f"PRD generation failed: {e}"
                 )
 
 
 # =========================================================
-# Final PRD
+# STEP 5 — FINAL PRD
 # =========================================================
 
-if "prd" in st.session_state:
+elif "prd" in st.session_state:
 
     prd = st.session_state[
         "prd"
     ]
 
-    st.divider()
-
     st.markdown(
-        '<div class="section-label">OUTPUT</div>',
+        '<div class="section-label">'
+        '05 / PRD'
+        '</div>',
         unsafe_allow_html=True,
     )
 
-    st.subheader(
-        "Final Product Requirements Document"
+    st.success(
+        "Human-reviewed PRD generated"
     )
 
-    st.caption(
-        "Generated from the original idea, structured "
-        "analysis, AI critique, and human product decisions."
-    )
-
-    st.markdown(
-        f"# {prd.title}"
-    )
-
-    st.markdown(
-        "### Executive Summary"
+    st.header(
+        prd.title
     )
 
     st.write(
         prd.executive_summary
+    )
+
+
+    # =====================================================
+    # Before / After
+    # =====================================================
+
+    st.subheader(
+        "What changed after human review?"
+    )
+
+    st.caption(
+        "The final PRD reflects explicit product "
+        "decisions rather than automatically accepting "
+        "the initial AI proposal."
+    )
+
+    before_col, after_col = st.columns(
+        2,
+        gap="large",
+    )
+
+    with before_col:
+
+        st.markdown(
+            "#### AI Proposal"
+        )
+
+        st.markdown(
+            """
+            - Automated candidate ranking
+            - Relevance scoring
+            - AI-assisted shortlisting
+            - Matching without required evidence
+            - ATS integration left ambiguous
+            """
+        )
+
+    with after_col:
+
+        st.markdown(
+            "#### Human Decision"
+        )
+
+        if st.session_state.get(
+            "remove_ranking",
+            False,
+        ):
+            st.markdown(
+                "✓ Ranking removed from MVP"
+            )
+
+        if st.session_state.get(
+            "require_evidence",
+            False,
+        ):
+            st.markdown(
+                "✓ Supporting evidence required"
+            )
+
+        if st.session_state.get(
+            "human_shortlist",
+            False,
+        ):
+            st.markdown(
+                "✓ Recruiter keeps final decision"
+            )
+
+        if st.session_state.get(
+            "privacy_risk",
+            False,
+        ):
+            st.markdown(
+                "✓ Candidate privacy made explicit"
+            )
+
+        if st.session_state.get(
+            "no_ats",
+            False,
+        ):
+            st.markdown(
+                "✓ ATS integration moved outside MVP"
+            )
+
+
+    # =====================================================
+    # PRD Content
+    # =====================================================
+
+    st.divider()
+
+    st.subheader(
+        "Final Product Requirements Document"
     )
 
     st.markdown(
@@ -824,105 +891,82 @@ if "prd" in st.session_state:
         prd.problem_statement
     )
 
-    prd_left, prd_right = st.columns(
+    left, right = st.columns(
         2,
         gap="large",
     )
 
-    with prd_left:
+    with left:
 
         st.markdown(
             "### Target Users"
         )
 
         for item in prd.target_users:
-
-            st.markdown(
-                f"- {item}"
-            )
+            st.markdown(f"- {item}")
 
         st.markdown(
             "### Goals"
         )
 
         for item in prd.goals:
-
-            st.markdown(
-                f"- {item}"
-            )
+            st.markdown(f"- {item}")
 
         st.markdown(
             "### User Stories"
         )
 
         for item in prd.user_stories:
-
-            st.markdown(
-                f"- {item}"
-            )
+            st.markdown(f"- {item}")
 
         st.markdown(
             "### MVP Scope"
         )
 
         for item in prd.mvp_scope:
+            st.markdown(f"- {item}")
 
-            st.markdown(
-                f"- {item}"
-            )
-
-    with prd_right:
+    with right:
 
         st.markdown(
             "### Non-Goals"
         )
 
         for item in prd.non_goals:
-
-            st.markdown(
-                f"- {item}"
-            )
+            st.markdown(f"- {item}")
 
         st.markdown(
             "### Acceptance Criteria"
         )
 
-        for item in prd.acceptance_criteria:
-
-            st.markdown(
-                f"- {item}"
-            )
+        for item in (
+            prd.acceptance_criteria
+        ):
+            st.markdown(f"- {item}")
 
         st.markdown(
             "### Risks"
         )
 
         for item in prd.risks:
-
-            st.markdown(
-                f"- {item}"
-            )
+            st.markdown(f"- {item}")
 
         st.markdown(
             "### Open Questions"
         )
 
         for item in prd.open_questions:
-
-            st.markdown(
-                f"- {item}"
-            )
+            st.markdown(f"- {item}")
 
 
     # =====================================================
-    # Download
+    # Export / Restart
     # =====================================================
 
     st.divider()
 
-    download_col, note_col = st.columns(
-        [1, 2],
-        gap="large",
+    download_col, restart_col = st.columns(
+        2
     )
 
     markdown_prd = prd_to_markdown(
@@ -932,7 +976,7 @@ if "prd" in st.session_state:
     with download_col:
 
         st.download_button(
-            label="Download PRD (.md)",
+            "Download PRD (.md)",
             data=markdown_prd,
             file_name=(
                 "product_requirements_document.md"
@@ -941,14 +985,24 @@ if "prd" in st.session_state:
             use_container_width=True,
         )
 
-    with note_col:
+    with restart_col:
 
-        st.caption(
-            "The exported document remains a draft. "
-            "AI-generated requirements should be validated "
-            "with users, product stakeholders, and "
-            "engineering before implementation."
-        )
+        if st.button(
+            "Start New Product Idea",
+            use_container_width=True,
+        ):
+
+            clear_workflow()
+
+            if (
+                "final_human_instructions"
+                in st.session_state
+            ):
+                del st.session_state[
+                    "final_human_instructions"
+                ]
+
+            st.rerun()
 
 
 # =========================================================
@@ -957,9 +1011,9 @@ if "prd" in st.session_state:
 
 st.markdown(
     """
-    <div class="footer-note">
-        AI Product Copilot · Qwen3:8B · Ollama · LangChain ·
-        Local-first · Human-in-the-loop
+    <div class="footer">
+        AI Product Copilot · Qwen3:8B · Ollama ·
+        LangChain · Pydantic · Human-in-the-loop
     </div>
     """,
     unsafe_allow_html=True,

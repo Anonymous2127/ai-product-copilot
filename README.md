@@ -1,80 +1,75 @@
 # AI Product Copilot
 
-> Turn ambiguous product ideas into structured,
-> reviewed, and human-approved product requirements.
+> **AI proposes. AI critiques. Humans decide.**
 
-![AI Product Copilot Demo](screenshots/01-product-idea.png)
+A local-first AI product workflow that turns ambiguous product ideas into
+**structured analysis, explicit product decisions, and a human-reviewed PRD**.
 
+Built with **Qwen3:8B · Ollama · LangChain · Pydantic · Streamlit**
 
-AI Product Copilot is a local-first AI application that helps product managers transform early-stage product ideas into structured product analysis and an MVP Product Requirements Document (PRD).
-
-Instead of treating LLM output as ground truth, the application combines **structured generation, AI quality review, and human product judgment** before producing the final artifact.
-
-Built with **Qwen3:8B, Ollama, LangChain, Pydantic, and Streamlit**.
-
----
-## Demo
-
-AI Product Copilot uses a four-stage workflow:
-
-**Define → Analyze → Review → Decide**
-
-The system first converts an ambiguous idea into structured
-product requirements.
-
-![Structured Product Analysis](screenshots/02-0-quality-review.png)
-
-A second AI pass critiques the analysis for unsupported metrics,
-assumptions, scope creep, AI risks, and false certainty.
-
-The product manager then reviews those findings and provides
-explicit product decisions before the final PRD is generated.
-
-![AI Quality Review and Human Decision](screenshots/02-1-quality-review.png)
-
-The final PRD incorporates human decisions while preserving
-identified risks and open questions.
-
-![Human-Reviewed PRD](screenshots/03-final-prd.png)
----
-
-
-## Why I Built This
-
-Large language models can generate convincing product requirements quickly, but convincing output is not necessarily reliable output.
-
-During early testing, the model generated unsupported requirements such as arbitrary accuracy targets, latency targets, and assumptions about user behavior.
-
-For example, acceptance criteria included metrics such as:
-
-- `80% keyword matching`
-- `5-second processing time`
-
-even though those targets were never provided by the user or supported by research.
-
-This led to the core product question behind this project:
-
-**How can AI accelerate product requirement development without allowing generated assumptions to silently become product decisions?**
-
-AI Product Copilot explores a workflow where AI generates and critiques product requirements, while the product manager retains control over final decisions.
+![AI Product Copilot](screenshots/v3-01.png)
 
 ---
 
-## Product Workflow
+## 🎬 Product Demo
 
-The application follows four main stages:
+### 90-second walkthrough
 
-### 1. Define
+https://github.com/user-attachments/assets/5d24b07e-2d55-48ec-8aab-f8a30b81782c
 
-The product manager enters an ambiguous product idea.
+The demo follows one complete product workflow:
+
+**Define → Analyze → Review → Decide → PRD**
+
+A product manager starts with an ambiguous idea, reviews AI-generated
+requirements and quality warnings, makes explicit product decisions,
+and generates a human-reviewed PRD.
+
+---
+
+## The Product
+
+Most LLM tools stop here:
+
+```text
+Product Idea
+     ↓
+    LLM
+     ↓
+Generated PRD
+```
+
+AI Product Copilot introduces review and human decision points:
+
+```text
+Product Idea
+     ↓
+Structured AI Analysis
+     ↓
+AI Quality Review
+     ↓
+Human Product Decision
+     ↓
+Human-Reviewed PRD
+```
+
+The goal is not to let AI automatically decide what the product should be.
+
+The goal is to use AI to accelerate product thinking while keeping
+**scope, assumptions, risks, and consequential decisions visible to the PM**.
+
+---
+
+## 1. Define & Analyze
+
+The PM can start with an incomplete product idea.
 
 Example:
 
-> Build an AI resume screening feature that helps recruiters identify candidates who match a job description.
+> Build an AI resume screening feature that helps recruiters identify
+> candidates who match a job description.
 
-### 2. Analyze
-
-Qwen3 generates a structured product analysis including:
+Qwen3 converts the idea into structured product analysis:
 
 - Problem
 - Target users
@@ -85,73 +80,109 @@ Qwen3 generates a structured product analysis including:
 - Assumptions
 - Open questions
 
-The response is constrained using a **Pydantic schema** instead of relying on free-form text generation.
+The response is constrained using a **Pydantic schema** rather than
+returned as uncontrolled free-form text.
 
-### 3. Review
+---
 
-A separate AI review step critiques the generated analysis for potential quality issues such as:
+## 2. Review & Decide
+
+A second AI pass critiques the initial analysis for:
 
 - Unsupported metrics
 - Unsupported assumptions
 - MVP scope creep
-- AI risks
+- AI-specific risks
 - False certainty
 - Missing considerations
 
-The reviewer is intentionally treated as an **advisory system rather than an authority**.
+But the reviewer is deliberately treated as **advisory, not authoritative**.
 
-An AI reviewer can also hallucinate or make questionable recommendations.
+The PM then turns those findings into explicit product decisions.
 
-### 4. Decide
+![AI Quality Review and Product Decision Workspace](screenshots/v3-02.png)
 
-The product manager reviews both the original analysis and the AI critique.
+In the resume-screening example, the PM decides to:
 
-Human instructions can override AI recommendations before the final PRD is generated.
+- Remove automated candidate ranking and relevance scores
+- Require evidence for AI-generated matches
+- Keep final shortlist decisions with recruiters
+- Treat candidate privacy as a key product risk
+- Keep ATS integration outside the MVP
 
-The final document can then be exported as Markdown.
+This step is intentionally designed as a **decision workspace**, rather
+than another prompt box.
 
 ---
 
-## Architecture
+## 3. Generate the Human-Reviewed PRD
 
-![AI Product Copilot Architecture](docs/architecture.png)
-
-The core workflow is:
+The final PRD combines:
 
 ```text
-Product Idea
-     ↓
-Requirement Analyzer
-     ↓
-Structured ProductAnalysis
-     ↓
-AI Quality Reviewer
-     ↓
-Human Product Decision
-     ↓
-PRD Generator
-     ↓
+Original Product Idea
+        +
+Structured AI Analysis
+        +
+AI Quality Review
+        +
+Human Product Decisions
+        ↓
 Final PRD
 ```
 
-### Local AI Runtime
+The product also makes the impact of human review visible:
 
-The application currently runs locally using:
+![Human-Reviewed PRD](screenshots/v3-03.png)
 
-- Ollama
-- Qwen3:8B
+### Example: before vs. after human review
 
-This makes local experimentation possible without requiring product inputs to be sent to an external hosted LLM API.
+| Initial AI Proposal | Human-Reviewed Decision |
+|---|---|
+| Automated candidate ranking | Removed from MVP |
+| Relevance scoring | Removed |
+| AI-assisted shortlisting | Recruiter keeps final decision |
+| Matching without required evidence | Supporting evidence required |
+| ATS integration ambiguous | Explicitly outside MVP |
+| Privacy not sufficiently emphasized | Candidate privacy made explicit |
+
+The PRD can then be exported as Markdown.
 
 ---
 
-## Key AI Product Decisions
+# Why I Built This
 
-### Structured Output over Free-form Generation
+During early testing, the LLM produced requirements that looked reasonable
+but were not supported by the original product input.
+
+For example, it generated acceptance criteria such as:
+
+```text
+80% keyword matching
+5-second processing time
+```
+
+Neither target came from user research, technical validation, or the
+original requirement.
+
+That exposed the core product problem behind this project:
+
+> **How can AI accelerate product requirement development without allowing
+> generated assumptions to silently become product decisions?**
+
+The first response was to introduce structured output.
+
+That solved one problem—but revealed another.
+
+---
+
+# Key AI Product Decisions
+
+## 1. Structured Output over Free-form Generation
 
 The first prototype returned a Markdown document directly from the LLM.
 
-That worked for a demo, but it made the application dependent on unpredictable model formatting.
+That made the application dependent on unpredictable model formatting.
 
 The workflow was changed to:
 
@@ -160,40 +191,62 @@ LLM
  ↓
 Pydantic Schema
  ↓
-Validated Application Data
+Validated Structured Data
  ↓
-UI
+Application UI
 ```
 
-This separates model generation from presentation and gives the application control over the output structure.
+This gives the application control over the output structure and makes
+individual product fields directly usable by the UI.
 
 ---
 
-### Schema Validation Does Not Guarantee Semantic Quality
+## 2. Structural Validity ≠ Product Validity
 
-Structured output solved formatting reliability, but testing revealed that the model could still produce unsupported content inside a perfectly valid schema.
+Pydantic improved output structure, but testing revealed that the model
+could still place unsupported content inside a perfectly valid schema.
 
-For example, the model introduced numerical acceptance criteria that were never supplied by the user.
+For example:
 
-This demonstrated an important distinction:
+```json
+{
+  "acceptance_criteria": [
+    "The matching system should achieve 80% accuracy"
+  ]
+}
+```
 
-> Structural validity is not the same as factual or product validity.
+This can be structurally valid while still being an unsupported product claim.
 
-The Quality Reviewer was added to identify these semantic issues.
+> **Schema validation solves structural reliability, not semantic reliability.**
+
+That observation led to the Quality Reviewer.
 
 ---
 
-### AI Reviewer as Advisor, Not Judge
+## 3. AI Reviewer as Advisor, Not Judge
 
-A second LLM pass reviews generated requirements.
+A second LLM pass reviews the initial product analysis.
 
 However, the reviewer is not assumed to be correct.
 
-During development, the reviewer correctly criticized an unsupported numerical accuracy target, but then suggested another unsupported numerical target in its own recommendation.
+During development, the reviewer correctly identified an unsupported
+numerical accuracy target—and then suggested another unsupported numerical
+target in its own recommendation.
 
-This reinforced the decision not to automatically apply reviewer recommendations.
+That failure mode changed the product design.
 
-Instead:
+Instead of:
+
+```text
+AI generates
+     ↓
+AI reviews
+     ↓
+Automatically apply recommendation
+```
+
+the workflow became:
 
 ```text
 AI generates
@@ -205,86 +258,140 @@ Human decides
 
 ---
 
-### Human-in-the-loop
+## 4. Human-in-the-loop as a Product Interaction
 
-Human product instructions have higher priority than AI reviewer recommendations when generating the final PRD.
+Human review is not implemented as a disclaimer at the end of the workflow.
 
-For example, a product manager can explicitly specify:
+It is an explicit product step.
+
+The PM can make decisions such as:
 
 ```text
-Remove automated candidate ranking from the MVP.
+Remove automated ranking from the MVP.
 
-Recruiters must make the final shortlist decision.
+Require supporting evidence for AI-generated matches.
 
-Show supporting resume evidence for AI-generated matches.
+Keep the final shortlist decision with recruiters.
 
-Do not assume ATS integration.
-
-Treat candidate privacy as a key product risk.
+Treat candidate privacy as a key risk.
 ```
 
-The PRD generator then incorporates those decisions into the final document.
+Those decisions are then passed into the final PRD generation step and
+take priority over AI reviewer recommendations.
 
 This keeps consequential product decisions under human control.
 
 ---
 
-### Local-first Development
+## 5. Workflow over One Monolithic Chain
 
-The current implementation uses Qwen3:8B through Ollama.
+The application is intentionally not implemented as one uninterrupted
+LLM chain.
 
-Reasons for choosing a local model for this prototype include:
+Instead, the product workflow contains separate operations:
 
-- Fast experimentation without API integration
-- Local handling of prototype inputs
-- No per-request inference API cost
-- Ability to explore model behavior directly
-- Simple reproducible development environment
+```text
+Analyze Chain
+    ↓
+ProductAnalysis
 
-The model layer is separated from the product workflow so another LLM provider could be introduced later.
+Review Chain
+    ↓
+QualityReview
 
----
+Human Decision
+    ↓
 
-## Example: Human Review Changes the PRD
+PRD Generation Chain
+    ↓
+PRD
+```
 
-One test case started with an AI-generated resume-screening product concept.
+This design allows:
 
-The AI initially proposed:
+- Intermediate outputs to be visible to the user
+- Human intervention before final generation
+- Independent testing of each LLM step
+- Easier model replacement
+- Clearer debugging of failure modes
 
-- Candidate ranking
-- Relevance scoring
-- Automated filtering
+The workflow is currently simple enough to be orchestrated with Python
+and Streamlit session state.
 
-During human review, the product manager instructed the system to:
-
-- Remove automated candidate ranking
-- Remove relevance scores
-- Require evidence for AI-generated matches
-- Keep final shortlist decisions with recruiters
-- Treat candidate privacy as a key risk
-
-The final PRD reflected these decisions by moving automated ranking into **Non-Goals**, introducing evidence-based matching, preserving human decision-making, and explicitly identifying privacy risk.
-
-This demonstrates the intended behavior of the system:
-
-**AI proposes. AI critiques. Humans decide.**
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| LLM | Qwen3:8B |
-| Local inference | Ollama |
-| LLM orchestration | LangChain |
-| Structured output | Pydantic |
-| Application UI | Streamlit |
-| Language | Python |
+A graph-based orchestrator such as LangGraph would become more useful if
+future versions introduce conditional routing, automated retries,
+research tools, or iterative review loops.
 
 ---
 
-## Project Structure
+# Architecture
+
+![AI Product Copilot Architecture](docs/architecture.png)
+
+### Application workflow
+
+```text
+                         Product Idea
+                              │
+                              ▼
+                    Requirement Analyzer
+                              │
+                              ▼
+                     ProductAnalysis
+                    (Pydantic Schema)
+                              │
+                              ▼
+                     Quality Reviewer
+                              │
+                              ▼
+                       QualityReview
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │  Human Product  │
+                    │    Decision     │
+                    └────────┬────────┘
+                             │
+                             ▼
+                       PRD Generator
+                             │
+                             ▼
+                         Final PRD
+                             │
+                             ▼
+                      Markdown Export
+```
+
+### Local AI runtime
+
+```text
+Streamlit
+    ↓
+LangChain
+    ↓
+Ollama
+    ↓
+Qwen3:8B
+```
+
+The current prototype runs the LLM locally through Ollama.
+
+---
+
+# Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| LLM | Qwen3:8B | Product analysis and generation |
+| Local inference | Ollama | Local model runtime |
+| LLM orchestration | LangChain | Prompt + model pipelines |
+| Structured output | Pydantic | Typed application data |
+| UI | Streamlit | Interactive product workflow |
+| Core language | Python | Application logic |
+
+---
+
+# Project Structure
 
 ```text
 ai-product-copilot/
@@ -304,20 +411,24 @@ ai-product-copilot/
 │   └── architecture.png
 │
 ├── screenshots/
+│   ├── v3-01.png
+│   ├── v3-02.png
+│   └── v3-03.png
+│
 └── sample_data/
 ```
 
 ---
 
-## Run Locally
+# Run Locally
 
-### Prerequisites
+## Prerequisites
 
-- Python
+- Python 3.10+
 - Ollama
 - Qwen3:8B
 
-Pull the model if necessary:
+Pull the model:
 
 ```bash
 ollama pull qwen3:8b
@@ -326,7 +437,7 @@ ollama pull qwen3:8b
 Clone the repository:
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
+git clone https://github.com/Anonymous2127/ai-product-copilot.git
 cd ai-product-copilot
 ```
 
@@ -354,48 +465,77 @@ Start the application:
 streamlit run app.py
 ```
 
-Open the local Streamlit URL shown in the terminal.
+Then open the local Streamlit URL shown in the terminal.
 
 ---
 
-## Current Limitations
+# Current Limitations
 
-This project is an MVP designed to explore an AI-assisted product workflow rather than a production PRD system.
+This is an MVP designed to explore an AI-assisted product workflow rather
+than a production PRD platform.
 
 Current limitations include:
 
 - AI-generated analysis can still contain unsupported assumptions.
-- The Quality Reviewer is itself an LLM and can produce incorrect recommendations.
+- The Quality Reviewer is itself an LLM and can make incorrect recommendations.
 - Structured output improves format reliability but does not guarantee factual correctness.
-- Acceptance criteria may still contain language that requires human refinement.
-- Product recommendations are not grounded in actual user research unless that evidence is provided.
-- The current workflow does not yet retrieve supporting evidence from external research or internal knowledge bases.
-- Local model performance depends on available hardware.
+- Generated requirements are not grounded in real user research unless evidence is explicitly provided.
+- The current Decision Workspace uses a demo-specific resume-screening decision template.
+- The workflow does not yet retrieve evidence from research documents or internal knowledge bases.
+- Local inference performance depends on available hardware.
 
-These limitations are why human review remains part of the workflow.
-
----
-
-## Potential Next Steps
-
-Future iterations could explore:
-
-- Evidence-grounded product analysis using RAG
-- Uploading user interviews and research documents
-- Source citations for generated requirements
-- Editable structured requirements before PRD generation
-- Multiple LLM provider support
-- Evaluation datasets for requirement quality
-- Prompt and model comparison
-- PRD version history
-- Collaborative review workflows
+These limitations are also why **human review remains part of the product architecture**.
 
 ---
 
-## Design Principle
+# What I Would Build Next
 
-> AI should accelerate product thinking, not silently replace product judgment.
+The next iteration would focus on **grounding and evaluation**, rather than
+adding autonomous agents for their own sake.
 
-The goal of AI Product Copilot is therefore not to automatically write the “correct” PRD.
+### Evidence-grounded analysis
 
-It is to help product managers move faster while making assumptions, risks, AI limitations, and human decisions more visible.
+Allow PMs to upload:
+
+- User interviews
+- Research notes
+- Existing PRDs
+- Customer feedback
+- Competitive research
+
+Then use retrieval to connect generated requirements to supporting evidence.
+
+### Dynamic Decision Workspace
+
+Instead of using a demo-specific decision template:
+
+```text
+QualityReview
+      ↓
+Extract Product Decisions
+      ↓
+Generate Context-Specific Options
+      ↓
+PM Accept / Reject / Defer
+```
+
+### Evaluation
+
+Build a small evaluation dataset to measure:
+
+- Unsupported metric detection
+- Unsupported assumption detection
+- Scope-creep detection
+- Human instruction adherence
+- PRD consistency
+
+---
+
+# Design Principle
+
+> **AI should accelerate product thinking, not silently replace product judgment.**
+
+AI Product Copilot is not designed to automatically write the “correct” PRD.
+
+It is designed to help product managers move faster while making
+**assumptions, risks, AI limitations, and human decisions more visible.**
